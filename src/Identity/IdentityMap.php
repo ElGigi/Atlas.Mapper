@@ -52,6 +52,17 @@ abstract class IdentityMap
         $serial = $this->getSerial($row);
         $memory = $this->getRow($serial);
 
+        // Prevent modification from other connection
+        if ($memory !== null) {
+            $diff = array_diff_assoc($memory->getArrayCopy(), $row->getArrayCopy());
+
+            if (!empty($diff)) {
+                unset($this->serialToRow[$serial]);
+                unset($this->rowToSerial[$memory]);
+                $memory = null;
+            }
+        }
+
         if ($memory === null) {
             $this->setRow($row);
             return $row;
