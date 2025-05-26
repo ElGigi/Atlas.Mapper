@@ -16,6 +16,35 @@ use SplObjectStorage;
 
 class OneToMany extends DeletableRelationship
 {
+    public function stitchIntoRecords(
+        array $nativeRecords,
+        callable $custom = null
+    ) : void
+    {
+        if (empty($nativeRecords)) {
+            return;
+        }
+
+        $foreignRecords = $this->fetchForeignRecords($nativeRecords, $custom);
+
+        $foreignRecordHashes = [];
+        $foreignMatchColumns = array_values($this->on);
+        foreach ($foreignRecords as $foreignRecord) {
+            $foreignHash = $this->generateMatchHash($foreignRecord, $foreignMatchColumns);
+            if (!isset($foreignRecordHashes[$foreignHash])) {
+                $foreignRecordHashes[$foreignHash] = [];
+            }
+            $foreignRecordHashes[$foreignHash][] = $foreignRecord;
+        }
+
+        $nativeMatchColumns = array_keys($this->on);
+        foreach ($nativeRecords as $nativeRecord) {
+            $nativeHash = $this->generateMatchHash($nativeRecord, $nativeMatchColumns);
+            $nativeRecord->{$this->name} = $this->getForeignMapper()
+                ->newRecordSet($foreignRecordHashes[$nativeHash] ?? []);
+        }
+    }
+
     protected function stitchIntoRecord(
         Record $nativeRecord,
         array &$foreignRecords
@@ -61,5 +90,7 @@ class OneToMany extends DeletableRelationship
         foreach ($foreignRecordSet as $foreignRecord) {
             $foreignMapper->persist($foreignRecord, $tracker);
         }
+
+        $foreignRecordSet->detachDeleted();
     }
 }
