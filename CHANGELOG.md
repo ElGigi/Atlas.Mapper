@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 1.4.1
+
+- Merged #24: Fix ForeignComposite not using correct column when building
+  where.
+
+## 1.4.0
+
+- Merged #23: Fix dynamically declared properties.
+
+- Merged #22: Add Relationship::getForeignMapperClass().
+
 ## 1.3.3
 
 - Fixed #16: When persisting many-to-many relationship, call `setDelete()`
@@ -136,3 +147,4 @@ This release also adds:
 ## 1.0.0-alpha1
 
 Initial release.
+
